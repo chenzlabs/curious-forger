@@ -148,7 +148,25 @@
   function nearEquals(v1, v2) {
     return (v1.x === v2.x && v1.y === v2.y && v1.z === v2.z);  
   }
-  
+
+  function checkForChanges(self) {
+    var lastTargetPosition = self.lastTargetPosition || new Fullik.V3(0,0,0);
+      
+    // because we headlocked the model (at least for now),
+    // need to compute target position relative to HMD position and update this.targetPosition
+    lastTargetPosition.copy(self.data.target.object3D.position);
+    if (self.data.origin) {
+      // FIXME: needs to include origin rotation!!! this does not
+      lastTargetPosition.sub(self.data.origin.object3D.position);
+    }    
+    
+    if (!nearEquals(lastTargetPosition, self.targetPosition)) {
+      self.targetPosition.copy(lastTargetPosition);
+      self.structure.needUpdate();      
+      return true;
+    }      
+  }  
+    
   AFRAME.registerComponent('spine', {
     schema: {
       structure: {type: 'selector'},
@@ -236,13 +254,7 @@
       this.chain.addConsecutiveHingedBone(Y_AXIS.negated(), this.data.wristToTip, 'local', Y_AXIS.negated(), 70, 70, Z_AXIS);
       
       this.targetPosition = new THREE.Vector3();
-/*      
-      this.targetPosition.copy(this.data.target.object3D.position);
-      if (this.data.origin) {
-        // FIXME: needs to include origin rotation!!! this does not
-        this.targetPosition.sub(this.data.origin.object3D.position);
-      }    
-*/
+      
       this.structure = getClosestStructure(this.data.structure || this.el);
       
       if (!this.structure) {
@@ -252,35 +264,27 @@
 //      this.structure.solver.connectChain(this.chain, 0, 1, 'start', this.targetPosition, true, this.data.color);
       this.structure.solver.connectChain(this.chain, 0, 0 /* only one bone, no neck */, 'start', this.targetPosition, true, this.data.color);
 
+      // force change initially
       this.structure.needUpdate();
       
+      // listen for inspector changes when ticks are frozen
       this.data.target.addEventListener('componentchanged', this.onTargetChanged.bind(this));
     }, 
 
     onTargetChanged: function (evt) {
-      // this.structure.solver.update(); // so it changes with inspector
-      //this.structure.needUpdate();
+      if (!this.el.sceneEl.isPlaying) { 
+        if (checkForChanges(this)) {
+          this.structure.throttledTick(); 
+        }
+      }
     }, 
     
     update: function (oldData) {
+      checkForChanges(this);
     },
     
     tick: function (t, dt) {
-      // filter changes 
-      var lastTargetPosition = this.lastTargetPosition || new Fullik.V3(0,0,0);
-      
-      // because we headlocked the model (at least for now),
-      // need to compute target position relative to HMD position and update this.targetPosition
-      lastTargetPosition.copy(this.data.target.object3D.position);
-      if (this.data.origin) {
-        // FIXME: needs to include origin rotation!!! this does not
-        lastTargetPosition.sub(this.data.origin.object3D.position);
-      }    
-      
-      if (!nearEquals(lastTargetPosition, this.targetPosition)) {
-        this.targetPosition.copy(lastTargetPosition);
-        this.structure.needUpdate();      
-      }
+      checkForChanges(this);
     },
     
     remove: function () {
@@ -351,35 +355,28 @@
       }        
 //      this.structure.solver.connectChain(this.chain, 0, 0, 'start', this.targetPosition, true, this.data.color);
       this.structure.solver.connectChain(this.chain, 0, 2, 'start', this.targetPosition, true, this.data.color);
+      
+      // force change initially
       this.structure.needUpdate();
       
+      // listen for inspector changes when ticks are frozen
       this.data.target.addEventListener('componentchanged', this.onTargetChanged.bind(this));
     }, 
 
     onTargetChanged: function (evt) {
-      // this.structure.solver.update(); // so it changes with inspector
-      //this.structure.needUpdate();
+      if (!this.el.sceneEl.isPlaying) { 
+        if (checkForChanges(this)) {
+          this.structure.throttledTick(); 
+        }
+      }
     }, 
     
     update: function (oldData) {
+      checkForChanges(this);
     },
     
     tick: function (t, dt) {
-      // filter changes 
-      var lastTargetPosition = this.lastTargetPosition || new Fullik.V3(0,0,0);
-            
-      // because we headlocked the model (at least for now),
-      // need to compute target position relative to HMD position and update this.targetPosition
-      lastTargetPosition.copy(this.data.target.object3D.position);
-      if (this.data.origin) {
-        // FIXME: needs to include origin rotation!!! this does not
-        lastTargetPosition.sub(this.data.origin.object3D.position);
-      }    
-      
-      if (!nearEquals(lastTargetPosition, this.targetPosition)) {
-        this.targetPosition.copy(lastTargetPosition);
-        this.structure.needUpdate();      
-      }
+      checkForChanges(this);
     },
     
     remove: function () {
@@ -509,7 +506,7 @@
 <script>
   window.addEventListener('wheel', function (evt) {
     var moveme = "#left-foot"; //"#left-hand";
-    if (document.querySelector('a-scene').paused) { return; }
+    if (!document.querySelector('a-scene').isPlaying) { return; }
     var dz = evt.wheelDeltaY / 100;
     var dx = evt.wheelDeltaX / 100;
     var p = document.querySelector(moveme).getAttribute('position');
