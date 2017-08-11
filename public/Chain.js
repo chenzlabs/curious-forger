@@ -587,6 +587,8 @@ Fullik.Chain.prototype = {
                 // Get the UV between the target / end-location (which are now the same) and the start location of this bone
                 var boneOuterToInnerUV = bone.getDirectionUV().negated();
                 
+// try to integrate https://github.com/FedUni/caliko/pull/13
+if (i > 0) {              
                 // If the end effector is global hinged then we have to snap to it, then keep that
                 // resulting outer-to-inner UV in the plane of the hinge rotation axis
                 switch ( jointType ) {
@@ -611,7 +613,7 @@ Fullik.Chain.prototype = {
                         boneOuterToInnerUV = boneOuterToInnerUV.projectOnPlane( relativeHingeRotationAxis ).normalize();
                         break;
                 }
-                                                
+}                                                
                 // Calculate the new start joint location as the end joint location plus the outer-to-inner direction UV
                 // multiplied by the length of the bone.
                 var newStartLocation = target.plus( boneOuterToInnerUV.times( lng ) );
