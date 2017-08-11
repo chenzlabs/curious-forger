@@ -103,7 +103,7 @@
       if (this.needsUpdate) {
         this.needsUpdate = false;
 
-        //console.log('update');
+        console.log('structure: solver update');
         this.solver.update();
         
         for (var i=0; i<this.solver.chains.length; i++) {
@@ -143,6 +143,10 @@
     return chain;
   }
 
+  function nearEquals(v1, v2) {
+    return (v1.x === v2.x && v1.y === v2.y && v1.z === v2.z);  
+  }
+  
   AFRAME.registerComponent('spine', {
     schema: {
       structure: {type: 'selector'},
@@ -230,12 +234,13 @@
       this.chain.addConsecutiveHingedBone(Y_AXIS.negated(), this.data.wristToTip, 'local', Y_AXIS.negated(), 70, 70, Z_AXIS);
       
       this.targetPosition = new THREE.Vector3();
+/*      
       this.targetPosition.copy(this.data.target.object3D.position);
       if (this.data.origin) {
         // FIXME: needs to include origin rotation!!! this does not
         this.targetPosition.sub(this.data.origin.object3D.position);
       }    
-
+*/
       this.structure = getClosestStructure(this.data.structure || this.el);
       
       if (!this.structure) {
@@ -252,21 +257,28 @@
 
     onTargetChanged: function (evt) {
       // this.structure.solver.update(); // so it changes with inspector
-      this.structure.needUpdate();
+      //this.structure.needUpdate();
     }, 
     
     update: function (oldData) {
     },
     
     tick: function (t, dt) {
+      // filter changes 
+      var lastTargetPosition = this.lastTargetPosition || new Fullik.V3(0,0,0);
+      
       // because we headlocked the model (at least for now),
       // need to compute target position relative to HMD position and update this.targetPosition
-      this.targetPosition.copy(this.data.target.object3D.position);
+      lastTargetPosition.copy(this.data.target.object3D.position);
       if (this.data.origin) {
         // FIXME: needs to include origin rotation!!! this does not
-        this.targetPosition.sub(this.data.origin.object3D.position);
+        lastTargetPosition.sub(this.data.origin.object3D.position);
       }    
-      this.structure.needUpdate();      
+      
+      if (!nearEquals(lastTargetPosition, this.targetPosition)) {
+        this.targetPosition.copy(lastTargetPosition);
+        this.structure.needUpdate();      
+      }
     },
     
     remove: function () {
@@ -322,12 +334,13 @@
       //this.chain.addConsecutiveHingedBone(Y_AXIS.negated(), this.data.ankleToTip, 'local', Y_AXIS.negated(), 70, 0, Z_AXIS);
       
       this.targetPosition = new THREE.Vector3();
+/*      
       this.targetPosition.copy(this.data.target.object3D.position);
       if (this.data.origin) {
         // FIXME: needs to include origin rotation!!! this does not
         this.targetPosition.sub(this.data.origin.object3D.position);
       }    
-      
+*/      
       this.structure = getClosestStructure(this.data.structure || this.el);
       
       if (!this.structure) {
@@ -343,21 +356,28 @@
 
     onTargetChanged: function (evt) {
       // this.structure.solver.update(); // so it changes with inspector
-      this.structure.needUpdate();
+      //this.structure.needUpdate();
     }, 
     
     update: function (oldData) {
     },
     
     tick: function (t, dt) {
+      // filter changes 
+      var lastTargetPosition = this.lastTargetPosition || new Fullik.V3(0,0,0);
+            
       // because we headlocked the model (at least for now),
       // need to compute target position relative to HMD position and update this.targetPosition
-      this.targetPosition.copy(this.data.target.object3D.position);
+      lastTargetPosition.copy(this.data.target.object3D.position);
       if (this.data.origin) {
         // FIXME: needs to include origin rotation!!! this does not
-        this.targetPosition.sub(this.data.origin.object3D.position);
+        lastTargetPosition.sub(this.data.origin.object3D.position);
       }    
-      this.structure.needUpdate();      
+      
+      if (!nearEquals(lastTargetPosition, this.targetPosition)) {
+        this.targetPosition.copy(lastTargetPosition);
+        this.structure.needUpdate();      
+      }
     },
     
     remove: function () {
@@ -457,12 +477,11 @@
       </a-sphere>
     </a-entity>
 
+    <!-- really we only want position nailed, and Y rotation, not full orientation -->
     <a-entity sync-pose="#head" id="model">
-      <!-- really we only want position nailed, not orientation -->
-      <!-- Children init before parent, to make sure we have structure, make it peer -->
+      <!-- Children init before parent, so to make sure we have structure in time, make it peer -->
       <a-entity id="structure" structure></a-entity>
-      <!-- Build the body from bones -->
-      <!-- FIXME: body stays nailed to origin; make it move with the head (and/or neck model) -->
+      <!-- Build the body from head down with bones -->
       <a-entity spine="target:#head;structure:#structure"></a-entity>
       <a-entity arm="side:left;target:#left-hand;structure:#structure;origin:#head"></a-entity>
       <a-entity arm="side:right;target:#right-hand;structure:#structure;origin:#head"></a-entity>      
@@ -520,6 +539,7 @@
     if (!navigator.getVRDisplays) {
       console.log("!navigator.getVRDisplays");
       nonVRPosition();
+          //document.querySelector("[structure]").components.structure.needUpdate();
     } else {
       navigator.getVRDisplays().then(function (displays) {
         if (displays && displays.length > 0) { 
@@ -528,11 +548,13 @@
           vrPosition(); 
         } else {
           console.log("navigator.getVRDisplays() then no displays[0]");
-          nonVRPosition(); 
+          nonVRPosition();
+          //document.querySelector("[structure]").components.structure.needUpdate();
         }
       }).catch(function (err) {
         console.log("navigator.getVRDisplays() catch");
         nonVRPosition(); 
+          //document.querySelector("[structure]").components.structure.needUpdate();
       });
     }
   }
