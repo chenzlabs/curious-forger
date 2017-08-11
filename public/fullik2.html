@@ -158,6 +158,8 @@
     if (self.data.origin) {
       // FIXME: needs to include origin rotation!!! this does not
       lastTargetPosition.sub(self.data.origin.object3D.position);
+      //lastTargetPosition.applyQuaternion(self.data.origin.object3D.quaternion);
+      lastTargetPosition.applyAxisAngle(Y_AXIS, -self.data.origin.object3D.rotation.y);
     }    
     
     if (!nearEquals(lastTargetPosition, self.targetPosition)) {
