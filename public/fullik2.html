@@ -15,6 +15,8 @@
 <script src="Chain.js"></script>
 <script src="Structure.js"></script>
 
+<script src="https://cdn.rawgit.com/donmccurdy/aframe-extras/v3.9.0/dist/aframe-extras.min.js"></script>
+
 <script>
   var X_AXIS = new Fullik.V3( 1, 0, 0 );
   var Y_AXIS = new Fullik.V3( 0, 1, 0 );
@@ -444,7 +446,7 @@
   
   <a-entity id="spectator" camera look-controls position="-1 1.25 -1" rotation="0 225 0">
   </a-entity>
-  
+
   <a-entity id="player" wasd-controls>
 
     <a-entity id="head" non-vr-position="0 1.55 0.0" camera="userHeight:1.55; active:false">
@@ -453,25 +455,25 @@
       </a-sphere>  
     </a-entity>
   
-    <a-entity id="left-hand" position="-0.25 1.05 -0.25" oculus-touch-controls="hand:left" vive-controls="hand:left" tracker-marker="L">
+    <a-entity id="left-hand" non-vr-position="-0.25 1.05 -0.25" oculus-touch-controls="hand:left" vive-controls="hand:left" tracker-marker="L">
       <a-sphere opacity="0.5" scale="0.025 0.02 0.1">
         <a-cone opacity="0.5" color="red" position="0 -0.25 -1" scale="0.5 2 0.5" rotation="-90 0 0"></a-cone>
       </a-sphere>
     </a-entity>
   
-    <a-entity id="right-hand" position="0.25 1.05 0.25" oculus-touch-controls="hand:right" vive-controls="hand:right" tracker-marker="R">
+    <a-entity id="right-hand" non-vr-position="0.25 1.05 0.25" oculus-touch-controls="hand:right" vive-controls="hand:right" tracker-marker="R">
       <a-sphere opacity="0.5" scale="0.025 0.02 0.1">
         <a-cone opacity="0.5" color="blue" position="0 -0.25 -1" scale="0.5 2 0.5" rotation="-90 0 0"></a-cone>
       </a-sphere>
     </a-entity>
   
-    <a-entity id="left-foot" position="-0.15 0.0 0.0" vive-tracker="index:0" tracker-marker="0">
+    <a-entity id="left-foot" position="-0.15 0.0 0.0" no-vive-tracker="index:0" tracker-marker="0">
       <a-sphere opacity="0.5" scale="0.04 0.02 0.1">
         <a-cone opacity="0.5" color="red" position="0 -0.25 -1" scale="0.5 2 0.5" rotation="-90 0 0"></a-cone>
       </a-sphere>
     </a-entity>
      
-    <a-entity id="right-foot" position="0.15 0.2 0.25" vive-tracker="index:1" tracker-marker="1">
+    <a-entity id="right-foot" position="0.15 0.2 0.25" no-vive-tracker="index:1" tracker-marker="1">
       <a-sphere opacity="0.5" scale="0.04 0.02 0.1">
         <a-cone opacity="0.5" color="blue" position="0 -0.25 -1" scale="0.5 2 0.5" rotation="-90 0 0"></a-cone>
       </a-sphere>
@@ -491,7 +493,8 @@
     
   </a-entity>
   
-  <a-entity position="0 0 -2">
+  <a-entity id="arpit" position="0 0 -2"
+            object-model="src: avatar_scene.json">
    <a-entity tracker-marker="^"></a-entity>
   </a-entity>
   
@@ -518,7 +521,7 @@
     var sceneEl = document.querySelector('a-scene');
     // switch camera and look-controls to head so you don't get sick wearing the HMD
     sceneEl.querySelector('#head').setAttribute('camera', 'active', true);    
-    sceneEl.querySelector('#head').setAttribute('camera', 'look-controls', '');    
+    sceneEl.querySelector('#head').setAttribute('look-controls', '');    
   }
 
   function nonVRPosition() {
